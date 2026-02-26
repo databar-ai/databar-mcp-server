@@ -434,7 +434,7 @@ export class DatabarClient {
   ): Promise<any> {
     try {
       const response = await this.withRetry(() =>
-        this.client.get(`/table/${tableUuid}/run-enrichment/${enrichmentId}`)
+        this.client.post(`/table/${tableUuid}/run-enrichment/${enrichmentId}`)
       );
       return response.data;
     } catch (error) {
@@ -474,8 +474,8 @@ export class DatabarClient {
       try {
         const response = await this.withRetry(() =>
           this.client.post<CreateRowsResponse>(
-            `/tables/${tableId}/rows`,
-            { records: chunk, options: request.options }
+            `/table/${tableId}/rows`,
+            { rows: chunk }
           )
         );
         if (response.data.created) allCreated.push(...response.data.created);
@@ -502,7 +502,7 @@ export class DatabarClient {
       try {
         const response = await this.withRetry(() =>
           this.client.patch<PatchRowsResponse>(
-            `/tables/${tableId}/rows`,
+            `/table/${tableId}/rows`,
             { rows: chunk, return_rows: request.return_rows, overwrite: request.overwrite }
           )
         );
@@ -529,7 +529,7 @@ export class DatabarClient {
       try {
         const response = await this.withRetry(() =>
           this.client.post<UpsertRowsResponse>(
-            `/tables/${tableId}/rows:upsert`,
+            `/table/${tableId}/rows/upsert`,
             { rows: chunk }
           )
         );
