@@ -1,18 +1,48 @@
 {
   "name": "databar-mcp-server",
   "version": "1.3.0",
-  "description": "MCP server for Databar.ai API integration",
+  "description": "MCP server for Databar.ai — enables AI assistants to run data enrichments, manage tables, and more",
   "main": "dist/index.js",
+  "bin": {
+    "databar-mcp-server": "dist/index.js"
+  },
   "type": "module",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "watch": "tsx watch src/index.ts"
+    "watch": "tsx watch src/index.ts",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": ["mcp", "databar", "enrichment", "ai"],
-  "author": "Databar.ai",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "databar",
+    "enrichment",
+    "data-enrichment",
+    "ai",
+    "claude",
+    "waterfall",
+    "api"
+  ],
+  "author": "Databar.ai <info@databar.ai>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/databar-ai/databar-mcp-server.git"
+  },
+  "homepage": "https://apiv3.databar.ai/mcp-server",
+  "bugs": {
+    "url": "https://github.com/databar-ai/databar-mcp-server/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "axios": "^1.7.9",
@@ -24,5 +54,3 @@
     "typescript": "^5.7.2"
   }
 }
-
-
