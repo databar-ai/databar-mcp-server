@@ -473,13 +473,22 @@ export class DatabarClient {
     for (const chunk of chunks) {
       try {
         const response = await this.withRetry(() =>
-          this.client.post<CreateRowsResponse>(
+          this.client.post<CreateRowsResponse | { results: Array<{ index: number; id: string | null; action: string }> }>(
             `/table/${tableId}/rows`,
             { rows: chunk }
           )
         );
-        if (response.data.created) allCreated.push(...response.data.created);
-        if (response.data.errors) allErrors.push(...response.data.errors);
+        const data = response.data as CreateRowsResponse & { results?: Array<{ index: number; id: string | null; action: string }> };
+        if (data.results) {
+          for (const item of data.results) {
+            if (item.action === 'created' && item.id) {
+              allCreated.push({ rowId: item.id });
+            }
+          }
+        } else {
+          if (data.created) allCreated.push(...data.created);
+          if (data.errors) allErrors.push(...data.errors);
+        }
       } catch (error) {
         this.handleError(error);
       }
