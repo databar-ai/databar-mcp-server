@@ -231,7 +231,7 @@ const TOOLS: Tool[] = [
     inputSchema: {
       type: 'object',
       properties: {
-        table_id: { type: 'string', description: 'The ID of the table' },
+        table_uuid: { type: 'string', description: 'The UUID of the table' },
         records: {
           type: 'array',
           items: {
@@ -257,7 +257,7 @@ const TOOLS: Tool[] = [
           }
         }
       },
-      required: ['table_id', 'records']
+      required: ['table_uuid', 'records']
     }
   },
   {
@@ -266,7 +266,7 @@ const TOOLS: Tool[] = [
     inputSchema: {
       type: 'object',
       properties: {
-        table_id: { type: 'string', description: 'The ID of the table' },
+        table_uuid: { type: 'string', description: 'The UUID of the table' },
         rows: {
           type: 'array',
           items: {
@@ -282,7 +282,7 @@ const TOOLS: Tool[] = [
         },
         overwrite: { type: 'boolean', description: 'Overwrite non-empty cells (default: true)', default: true }
       },
-      required: ['table_id', 'rows']
+      required: ['table_uuid', 'rows']
     }
   },
   {
@@ -291,7 +291,7 @@ const TOOLS: Tool[] = [
     inputSchema: {
       type: 'object',
       properties: {
-        table_id: { type: 'string', description: 'The ID of the table' },
+        table_uuid: { type: 'string', description: 'The UUID of the table' },
         rows: {
           type: 'array',
           items: {
@@ -306,7 +306,7 @@ const TOOLS: Tool[] = [
           maxItems: 100
         }
       },
-      required: ['table_id', 'rows']
+      required: ['table_uuid', 'rows']
     }
   },
   {
@@ -604,35 +604,35 @@ export function createMcpServer(apiKey: string): Server {
         }
 
         case 'create_rows': {
-          const { table_id, records, options } = args as {
-            table_id: string; records: { fields: Record<string, any> }[]; options?: any;
+          const { table_uuid, records, options } = args as {
+            table_uuid: string; records: { fields: Record<string, any> }[]; options?: any;
           };
           const sizeErr = validateRowBatchSize(records, 'records');
           if (sizeErr) return { content: [{ type: 'text', text: sizeErr }], isError: true };
-          const response = await databarClient.createRows(table_id, { records, options });
-          auditLog({ timestamp: ts, tool: name, params: { table_id, count: records.length }, result: 'success' });
+          const response = await databarClient.createRows(table_uuid, { records, options });
+          auditLog({ timestamp: ts, tool: name, params: { table_uuid, count: records.length }, result: 'success' });
           return { content: [{ type: 'text', text: `Create rows result:\n\n${formatCreateRowsResponse(response)}` }] };
         }
 
         case 'patch_rows': {
-          const { table_id, rows, overwrite = true } = args as {
-            table_id: string; rows: { id: string; fields: Record<string, any> }[]; overwrite?: boolean;
+          const { table_uuid, rows, overwrite = true } = args as {
+            table_uuid: string; rows: { id: string; fields: Record<string, any> }[]; overwrite?: boolean;
           };
           const sizeErr = validateRowBatchSize(rows, 'rows');
           if (sizeErr) return { content: [{ type: 'text', text: sizeErr }], isError: true };
-          const response = await databarClient.patchRows(table_id, { rows, overwrite });
-          auditLog({ timestamp: ts, tool: name, params: { table_id, count: rows.length }, result: 'success' });
+          const response = await databarClient.patchRows(table_uuid, { rows, overwrite });
+          auditLog({ timestamp: ts, tool: name, params: { table_uuid, count: rows.length }, result: 'success' });
           return { content: [{ type: 'text', text: `Patch rows result:\n\n${formatPatchRowsResponse(response)}` }] };
         }
 
         case 'upsert_rows': {
-          const { table_id, rows } = args as {
-            table_id: string; rows: { key: Record<string, any>; fields: Record<string, any> }[];
+          const { table_uuid, rows } = args as {
+            table_uuid: string; rows: { key: Record<string, any>; fields: Record<string, any> }[];
           };
           const sizeErr = validateRowBatchSize(rows, 'rows');
           if (sizeErr) return { content: [{ type: 'text', text: sizeErr }], isError: true };
-          const response = await databarClient.upsertRows(table_id, { rows });
-          auditLog({ timestamp: ts, tool: name, params: { table_id, count: rows.length }, result: 'success' });
+          const response = await databarClient.upsertRows(table_uuid, { rows });
+          auditLog({ timestamp: ts, tool: name, params: { table_uuid, count: rows.length }, result: 'success' });
           return { content: [{ type: 'text', text: `Upsert rows result:\n\n${formatUpsertRowsResponse(response)}` }] };
         }
 
