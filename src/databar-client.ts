@@ -434,7 +434,7 @@ export class DatabarClient {
   ): Promise<any> {
     try {
       const response = await this.withRetry(() =>
-        this.client.get(`/table/${tableUuid}/run-enrichment/${enrichmentId}`)
+        this.client.post(`/table/${tableUuid}/run-enrichment/${enrichmentId}`)
       );
       return response.data;
     } catch (error) {
@@ -473,13 +473,22 @@ export class DatabarClient {
     for (const chunk of chunks) {
       try {
         const response = await this.withRetry(() =>
-          this.client.post<CreateRowsResponse>(
-            `/tables/${tableId}/rows`,
-            { records: chunk, options: request.options }
+          this.client.post<CreateRowsResponse | { results: Array<{ index: number; id: string | null; action: string }> }>(
+            `/table/${tableId}/rows`,
+            { rows: chunk }
           )
         );
-        if (response.data.created) allCreated.push(...response.data.created);
-        if (response.data.errors) allErrors.push(...response.data.errors);
+        const data = response.data as CreateRowsResponse & { results?: Array<{ index: number; id: string | null; action: string }> };
+        if (data.results) {
+          for (const item of data.results) {
+            if (item.action === 'created' && item.id) {
+              allCreated.push({ rowId: item.id });
+            }
+          }
+        } else {
+          if (data.created) allCreated.push(...data.created);
+          if (data.errors) allErrors.push(...data.errors);
+        }
       } catch (error) {
         this.handleError(error);
       }
@@ -502,7 +511,7 @@ export class DatabarClient {
       try {
         const response = await this.withRetry(() =>
           this.client.patch<PatchRowsResponse>(
-            `/tables/${tableId}/rows`,
+            `/table/${tableId}/rows`,
             { rows: chunk, return_rows: request.return_rows, overwrite: request.overwrite }
           )
         );
@@ -529,7 +538,7 @@ export class DatabarClient {
       try {
         const response = await this.withRetry(() =>
           this.client.post<UpsertRowsResponse>(
-            `/tables/${tableId}/rows:upsert`,
+            `/table/${tableId}/rows/upsert`,
             { rows: chunk }
           )
         );
