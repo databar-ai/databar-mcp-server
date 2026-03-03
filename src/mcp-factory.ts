@@ -193,8 +193,19 @@ const TOOLS: Tool[] = [
   },
   {
     name: 'create_table',
-    description: 'Create a new empty table in your Databar workspace.',
-    inputSchema: { type: 'object', properties: {} }
+    description: 'Create a new table in your Databar workspace. Optionally specify a name, column names, and number of empty rows. By default creates columns column1/column2/column3 and 0 rows.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Table name (default: "New empty table")' },
+        columns: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Column names. Default: ["column1","column2","column3"]. Pass empty array [] to create a table with no columns.'
+        },
+        rows: { type: 'number', description: 'Number of empty rows to create (default: 0)', default: 0 }
+      }
+    }
   },
   {
     name: 'list_tables',
@@ -570,8 +581,13 @@ export function createMcpServer(apiKey: string): Server {
         }
 
         case 'create_table': {
-          const table = await databarClient.createTable();
-          auditLog({ timestamp: ts, tool: name, params: {}, result: 'success' });
+          const { name: tableName, columns, rows = 0 } = args as {
+            name?: string;
+            columns?: string[];
+            rows?: number;
+          };
+          const table = await databarClient.createTable({ name: tableName, columns, rows });
+          auditLog({ timestamp: ts, tool: name, params: { name: tableName, columns, rows }, result: 'success' });
           return { content: [{ type: 'text', text: `Table created successfully\n\n${formatTableForDisplay(table)}` }] };
         }
 

@@ -370,10 +370,14 @@ export class DatabarClient {
   // Table Methods
   // ============================================================================
 
-  async createTable(): Promise<Table> {
+  async createTable(options?: { name?: string; columns?: string[]; rows?: number }): Promise<Table> {
     try {
+      const body: Record<string, unknown> = {};
+      if (options?.name !== undefined) body.name = options.name;
+      if (options?.columns !== undefined) body.columns = options.columns;
+      if (options?.rows !== undefined) body.rows = options.rows;
       const response = await this.withRetry(() =>
-        this.client.post<Table>('/table/create')
+        this.client.post<Table>('/table/create', Object.keys(body).length ? body : undefined)
       );
       return response.data;
     } catch (error) {
