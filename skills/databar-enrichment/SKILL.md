@@ -37,18 +37,26 @@ Run a data enrichment on Databar.ai to look up information about a person, compa
    - Required parameters — make sure you have all of them from the user's input
    - Price — note the credit cost
    - If you're missing a required parameter, ask the user for it
+   - For each param, check `type_field` and `choices`:
+     - `type_field: "select"` — the param expects one value from a fixed list
+     - `type_field: "mselect"` — the param expects an **array** of values from a fixed list
 
-4. **Confirm cost with the user.**
+4. **Resolve choices for select/mselect params.**
+   If a param has a `choices` object, you must pass a valid `id` (not the display name).
+   - `choices.mode = "inline"` — valid options are in `choices.items[].id`. Pick from there directly.
+   - `choices.mode = "remote"` — call `get_param_choices({ enrichment_id, param_name })` to fetch valid options. Use `q` to search if the list is large (e.g. countries, industries). Always pass the `id` field, not the `name`.
+
+5. **Confirm cost with the user.**
    Tell the user: "This will cost {price} credits using {enrichment_name}. Proceed?"
    If the user has not confirmed willingness to spend credits, always ask first.
 
-5. **Run the enrichment.**
+6. **Run the enrichment.**
    Call `run_enrichment` with `enrichment_id` and `params`.
    - The server handles async polling automatically
    - Results are cached for 24 hours; repeated lookups are free
    - Use `skip_cache: true` only if the user explicitly wants fresh data
 
-6. **Present results clearly.**
+7. **Present results clearly.**
    Format the returned data as a readable summary. Highlight the most relevant fields based on the user's original question.
 
 ## Error handling
@@ -64,7 +72,7 @@ Run a data enrichment on Databar.ai to look up information about a person, compa
 **User**: "Get me the LinkedIn profile for Sarah Chen at Stripe"
 1. `search_enrichments({ query: "linkedin profile" })`
 2. Pick the best match, e.g. ID 42 — "LinkedIn Profile Lookup" at 2 credits
-3. `get_enrichment_details({ enrichment_id: 42 })`
+3. `get_enrichment_details({ enrichment_id: 42 })` — all params are `text`, no choices needed
 4. Confirm: "This will cost 2 credits. Proceed?"
 5. `run_enrichment({ enrichment_id: 42, params: { full_name: "Sarah Chen", company: "Stripe" } })`
 6. Present profile summary
@@ -73,11 +81,22 @@ Run a data enrichment on Databar.ai to look up information about a person, compa
 **User**: "Is david@databar.ai a valid email?"
 1. `search_enrichments({ query: "email verification", category: "verification" })`
 2. Pick match, e.g. ID 15 — "Email Verifier" at 0.5 credits
-3. Confirm cost, then run
-4. `run_enrichment({ enrichment_id: 15, params: { email: "david@databar.ai" } })`
-5. Present verification result (valid/invalid, deliverable, catch-all, etc.)
+3. `get_enrichment_details({ enrichment_id: 15 })` — `email` param is `text`, no choices
+4. Confirm cost, then run
+5. `run_enrichment({ enrichment_id: 15, params: { email: "david@databar.ai" } })`
+6. Present verification result (valid/invalid, deliverable, catch-all, etc.)
 
-### Example 3: Company domain lookup
+### Example 3: Enrichment with a select param (e.g. region)
+**User**: "Get Google Maps directions from Times Square to JFK"
+1. `search_enrichments({ query: "google maps directions" })`
+2. Pick match, e.g. ID 5
+3. `get_enrichment_details({ enrichment_id: 5 })` — `region` param has `choices.mode = "remote"`
+4. `get_param_choices({ enrichment_id: 5, param_name: "region", q: "united" })` → `[{ id: "US", name: "United States" }, ...]`
+5. Confirm cost
+6. `run_enrichment({ enrichment_id: 5, params: { origin: "Times Square, NY", destination: "JFK Airport", region: "US" } })`
+7. Present directions
+
+### Example 4: Company domain lookup
 **User**: "What can you tell me about openai.com?"
 1. `search_enrichments({ query: "company data", category: "company" })`
 2. Pick match, confirm cost

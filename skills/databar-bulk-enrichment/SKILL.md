@@ -38,19 +38,25 @@ Enrich a list of records in a single operation and return results inline. Unlike
    Call `search_enrichments` with a query matching the task.
 
 4. **Inspect it.**
-   Call `get_enrichment_details` to check required parameters and price per record.
+   Call `get_enrichment_details` to check required parameters, price per record, and choices for any `select`/`mselect` params.
 
-5. **Validate the list.**
+5. **Resolve choices for select/mselect params.**
+   If any param has a `choices` object, you must use valid `id` values (not display names) when building `params_list`.
+   - `choices.mode = "inline"` — pick from `choices.items[].id` directly.
+   - `choices.mode = "remote"` — call `get_param_choices({ enrichment_id, param_name })` to get valid options. Use `q` to search if needed.
+   - `mselect` params accept an **array** of ids.
+
+6. **Validate the list.**
    - Max 100 items per request. If the user provides more, warn them and either:
      - Truncate to 100 with their approval
      - Suggest using the table-driven skill for larger datasets
    - Ensure each record has the required parameters. Flag any incomplete records.
 
-6. **Estimate and confirm cost.**
+7. **Estimate and confirm cost.**
    Calculate: `item_count x price_per_enrichment = total_cost`.
    Tell the user: "Enriching {count} records at {price} credits each = ~{total} credits. Proceed?"
 
-7. **Build the params_list.**
+8. **Build the params_list.**
    Transform the user's data into an array of parameter objects matching the enrichment's required params.
    ```
    params_list: [
@@ -60,18 +66,18 @@ Enrich a list of records in a single operation and return results inline. Unlike
    ]
    ```
 
-8. **Run the bulk enrichment.**
+9. **Run the bulk enrichment.**
    Call `run_bulk_enrichment` with `enrichment_id` and `params_list`.
 
-9. **Format results as a table.**
-   Present results as a markdown table. Include the original input fields plus key result fields.
+10. **Format results as a table.**
+    Present results as a markdown table. Include the original input fields plus key result fields.
 
-   | Email | Status | Deliverable | Provider |
-   |-------|--------|-------------|----------|
-   | alice@example.com | valid | yes | ... |
-   | bob@example.com | invalid | no | ... |
+    | Email | Status | Deliverable | Provider |
+    |-------|--------|-------------|----------|
+    | alice@example.com | valid | yes | ... |
+    | bob@example.com | invalid | no | ... |
 
-   Summarize: "X of Y records enriched successfully."
+    Summarize: "X of Y records enriched successfully."
 
 ## Error handling
 
