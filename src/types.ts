@@ -75,7 +75,7 @@ export type TaskStatus =
   | 'gone';
 
 export interface TaskResponse {
-  request_id: string;
+  task_id: string;
   status: TaskStatus;
   data?: any;
   error?: string | string[] | null;
@@ -265,7 +265,7 @@ export interface WaterfallResultData {
 }
 
 export interface WaterfallTaskResponse {
-  request_id: string;
+  task_id: string;
   status: TaskStatus;
   data?: WaterfallResultData[];
   error?: string | null;

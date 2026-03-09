@@ -373,7 +373,7 @@ export class DatabarClient {
     const data = await this.pollTaskUntilComplete(runResponse.task_id);
     
     return {
-      request_id: runResponse.task_id,
+      task_id: runResponse.task_id,
       status: 'completed',
       data: data,
       error: null
