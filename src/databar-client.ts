@@ -138,10 +138,14 @@ export class DatabarClient {
 
   async getAllEnrichments(): Promise<Enrichment[]> {
     try {
-      const response = await this.withRetry(() => 
-        this.client.get<Enrichment[]>('/enrichments')
+      const response = await this.withRetry(() =>
+        this.client.get<Enrichment[] | { items?: Enrichment[]; results?: Enrichment[] }>('/enrichments')
       );
-      return response.data;
+      const data = response.data;
+      if (Array.isArray(data)) return data;
+      if (data?.items) return data.items;
+      if (data?.results) return data.results;
+      return [];
     } catch (error) {
       this.handleError(error);
     }
